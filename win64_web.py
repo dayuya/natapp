@@ -20,12 +20,12 @@ def update():
     #检查更新
     print("当前运行的脚本版本：" + str(version))
     try:
-        r1 = requests.get("https://ghproxy.com/https://github.com/dayuya/natapp/blob/main/win64_web.py").text
+        r1 = requests.get("https://github.com/dayuya/natapp/blob/main/win64_web.py").text
         r2 = re.findall(re.compile("version = \d.\d"), r1)[0].split("=")[1].strip()
         if float(r2) > version:
             print("发现新版本：" + r2)
             print("正在自动更新脚本...")
-            response = requests.get("https://ghproxy.com/https://github.com/dayuya/natapp/blob/main/win64_web.py")
+            response = requests.get("https://github.com/dayuya/natapp/blob/main/win64_web.py")
             # 下载成功，将文件保存到本地
             if response.status_code == 200:
                 with open(path, 'wb') as f:
