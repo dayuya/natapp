@@ -1,6 +1,6 @@
 
 # -*- coding: UTF-8 -*-
-# Version: v2.0
+# Version: v2.1
 # auth: dayuya
 # time: 2023/05/23
 import os
@@ -18,20 +18,27 @@ log_path = os.path.join(path,"natapp_web_log.txt")
 app_path = os.path.join(path,"natapp.exe")
 def update():
     #检查更新
-    print("当前运行的脚本版本：" + str(version))
     try:
-        r1 = requests.get("https://ghproxy.com/https://github.com/dayuya/natapp/blob/main/win64_web.py").text
+        print("当前运行的脚本版本：" + str(version))
+        r1 = requests.get("https://ghproxy.com/https://raw.githubusercontent.com/dayuya/natapp/main/win64_web.py").text
         r2 = re.findall(re.compile("version = \d.\d"), r1)[0].split("=")[1].strip()
         if float(r2) > version:
             print("发现新版本：" + r2)
             print("正在自动更新脚本...")
-            response = requests.get("https://ghproxy.com/https://github.com/dayuya/natapp/blob/main/win64_web.py")
-            # 下载成功，将文件保存到本地
+            if 'natapp.exe' in (p.name() for p in psutil.process_iter()):
+                os.system("taskkill /im natapp.exe /f ")
+            if os.path.exists(log_path):
+                os.system("type nul > " + log_path)
+            response = requests.get(
+                "https://ghproxy.com/https://raw.githubusercontent.com/dayuya/natapp/main/win64_web.py")
+            path_t = os.path.abspath(__file__)
             if response.status_code == 200:
-                with open(path, 'wb') as f:
+                with open(path_t+".tmp", 'wb') as f:
                     f.write(response.content)
+                # 用新代码替换当前脚本
+                os.replace(path_t + ".tmp", path_t)
                 print('Source code downloaded successfully.')
-    except:
+    except requests.exceptions.RequestException as e:
         pass
 
 # 判断系统架构
@@ -65,7 +72,6 @@ def go():
         print("穿透程序已在运行...：%s" % url_g)
         return
     if os.path.exists(log_path):
-        os.system("del " + log_path + " 2>nul")
         os.system("type nul > " + log_path)
     # 根据进程名判断进程是否存在
     if 'natapp.exe' in (p.name() for p in psutil.process_iter()):
@@ -117,7 +123,7 @@ def pushplus_bot(title, content):
         print(e)
 
 if __name__ == '__main__':
-    version = 2.0
+    version = 2.1
     start=True
     try:
         authtoken = os.environ['natapp_authtoken_web']
