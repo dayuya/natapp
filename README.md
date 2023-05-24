@@ -8,7 +8,7 @@ natapp 用于内网穿透
 - 第一次会提示 添加环境变量 `PUSH_PLUS_TOKEN`  `natapp_authtoken_web`
 - PUSH_PLUS_TOKEN:微信plus的token
 - natapp_authtoken_web：natapp的web隧道的token
-#### win64 
+#### win64 教程
 - 拉取脚本
 - 同级目录建立 `.env` 文件 ：脚本会将此文件内容添加到 环境变量
   - 格式 一个变量一行  PUSH_PLUS_TOKEN="11"
