@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-
-# Version: v2.4
+# Version: v2.5
 # auth: dayuya
 # time: 2023/05/24
 import os
@@ -12,22 +12,25 @@ import platform
 from dotenv import load_dotenv
 import subprocess
 import psutil
-load_dotenv()
 import zipfile
-def unzip_file(zip_src, dst_dir):
-    r = zipfile.is_zipfile(zip_src)
-    if r:
-        fz = zipfile.ZipFile(zip_src, 'r')
-        for file in fz.namelist():
-            fz.extract(file, dst_dir)
-    else:
-        print('This is not zip')
-        
+load_dotenv()
+
+
 path = os.path.split(os.path.realpath(__file__))[0]
 log_path = os.path.join(path, "natapp_web_log.txt")
 app_path = os.path.join(path, "natapp.exe")
 
-def update():
+errors = {"Web服务错误", "此端口尚未提供Web服务", "无法连接到", "not found"}
+url_pattern = re.compile(r"http://\S+")
+
+def unzip_file(zip_src, dst_dir):
+    if zipfile.is_zipfile(zip_src):
+        with zipfile.ZipFile(zip_src, 'r') as fz:
+            fz.extractall(dst_dir)
+    else:
+        print('This is not zip')
+
+def update(version):
     # 检查更新
     try:
         print("当前运行的脚本版本：" + str(version))
@@ -117,12 +120,9 @@ def get_url():
     try:
         with open(log_path, encoding='utf-8') as f:
             log_content = f.read()
-        reg = r"http://\S+"
-        for i in re.findall(reg, log_content):
+        for i in url_pattern.findall(log_content):
             if 'natappfree' in i:
                 res = requests.get(i).text
-                # 使用集合来存储可能出现的错误信息，提高查找效率
-                errors = {"Web服务错误", "此端口尚未提供Web服务", "无法连接到", "not found"}
                 # 使用any函数来判断res中是否包含任意一个错误信息，简化逻辑判断
                 if any(error in res for error in errors):
                     # 使用next函数来查找名为natapp.exe的进程，如果找不到则返回None
@@ -158,23 +158,20 @@ def pushplus_bot(title, content):
     except Exception as e:
         print(e)
 
+def check_env_var(var_name, message):
+    value = os.environ.get(var_name, '')
+    if not value:
+        print(message)
+    return value
+
 if __name__ == '__main__':
-    version = 2.4
+    version = 2.5
     start = True
-    try:
-        authtoken = os.environ['natapp_authtoken_web']
-    except:
-        authtoken = ""
-    try:
-        PUSH_PLUS_TOKEN = os.environ['PUSH_PLUS_TOKEN']
-    except:
-        PUSH_PLUS_TOKEN = ""
-    if len(authtoken) == 0:
+    authtoken = check_env_var('natapp_authtoken_web', "请添加环境变量：natapp_authtoken_web")
+    PUSH_PLUS_TOKEN = check_env_var('PUSH_PLUS_TOKEN', "未开启通知 请添加环境变量:PUSH_PLUS_TOKEN")
+    if not authtoken:
         start = False
-        print("请添加环境变量：natapp_authtoken_web")
-    if len(PUSH_PLUS_TOKEN) == 0:
-        print("未开启通知 请添加环境变量:PUSH_PLUS_TOKEN")
-    update()
+    update(version)
     check_os()
     if start:
         go()
