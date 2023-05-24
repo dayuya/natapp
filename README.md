@@ -12,10 +12,11 @@ natapp 用于内网穿透
 - 拉取脚本
 - 同级目录建立 `.env` 文件 ：脚本会将此文件内容添加到 环境变量
   - 格式 一个变量一行  PUSH_PLUS_TOKEN="11"
- 
-  
-
 #### 其他
+##### ps:问题
+- [微信push`token`怎么获得](https://www.pushplus.plus/)
+- 其他问题
+  -请建立`issue`   
 ##### 参考文献
 - 百度
 - chatgpt
