@@ -1,8 +1,8 @@
 
 # -*- coding: UTF-8 -*-
-# Version: v2.1
+# Version: v2.2
 # auth: dayuya
-# time: 2023/05/23
+# time: 2023/05/24
 import os
 import re
 import json
@@ -12,7 +12,16 @@ import psutil
 import platform
 from dotenv import load_dotenv
 load_dotenv()
+import zipfile
 
+def unzip_file(zip_src, dst_dir):
+    r = zipfile.is_zipfile(zip_src)
+    if r:
+        fz = zipfile.ZipFile(zip_src, 'r')
+        for file in fz.namelist():
+            fz.extract(file, dst_dir)
+    else:
+        print('This is not zip')
 path = os.path.split(os.path.realpath(__file__))[0]
 log_path = os.path.join(path,"natapp_web_log.txt")
 app_path = os.path.join(path,"natapp.exe")
@@ -45,16 +54,19 @@ def update():
 def check_os():
     if platform.system() == 'Windows':
         print('当前系统为 Windows')
-        if platform.machine() == 'x86':
-            print('32 位 Windows 系统:'+platform.machine())
-        elif platform.machine() == 'x86_64':
-            print('64 位 Windows 系统:'+platform.machine())
-        elif platform.machine() == 'AMD64':
+        if platform.machine() in ['x86', 'x86_64', 'AMD64', 'amd64']:
             print('64 位 Windows 系统:' + platform.machine())
+            cpu = "amd64"
+        elif platform.machine() in ['AMD', 'AMD32']:
+            print('64 位 Windows 系统:' + platform.machine())
+            cpu = "386"
         else:
             print('Windows 系统:' + platform.machine())
+            cpu = platform.machine()
+        download_natapp(cpu)
     else:
         print('非 Windows 系统')
+
 
 def process_check():
     print("正在检测穿透状态...")
@@ -85,6 +97,18 @@ def go():
     else:
         print("启动内网穿透失败...")
 
+# 下载主程序
+def download_natapp(cpu):
+    if not os.path.exists("natapp.exe"):
+        print(cpu)
+        res = requests.get(f"https://cdn.natapp.cn/assets/downloads/clients/2_3_9/natapp_windows_{cpu}_2_3_9.zip?version=20230407")
+        with open("natapp.zip", "wb") as f:
+            f.write(res.content)
+            print("下载完成")
+        # dst_dir 目标文件夹
+        name = "natapp.zip"  # 在这里修改需要解压的文件夹
+        unzip_file(zip_src="./" + name, dst_dir="./")
+        os.remove("./" + name)  # 删除原始zip文件
 # 获取穿透url
 def get_url():
     try:
@@ -123,7 +147,7 @@ def pushplus_bot(title, content):
         print(e)
 
 if __name__ == '__main__':
-    version = 2.1
+    version = 2.2
     start=True
     try:
         authtoken = os.environ['natapp_authtoken_web']
@@ -137,13 +161,10 @@ if __name__ == '__main__':
         start=False
         print("请添加环境变量：natapp_authtoken_web")
     if len(PUSH_PLUS_TOKEN)==0:
-        print("未开启通知")
+        print("未开启通知 请添加环境变量:PUSH_PLUS_TOKEN")
     update()
-    #check_os()  检测架构去下载对应程序
-    #下载对应程序
-    #检测程序
-    if start:  
-        go()    
-
+    check_os()
+    if start:
+        go()
 
 
