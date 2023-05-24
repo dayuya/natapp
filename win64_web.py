@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-
-# Version: v2.3
+# Version: v2.4
 # auth: dayuya
 # time: 2023/05/24
 import os
@@ -10,11 +10,10 @@ from time import sleep
 import psutil
 import platform
 from dotenv import load_dotenv
-
+import subprocess
+import psutil
 load_dotenv()
 import zipfile
-
-
 def unzip_file(zip_src, dst_dir):
     r = zipfile.is_zipfile(zip_src)
     if r:
@@ -23,12 +22,10 @@ def unzip_file(zip_src, dst_dir):
             fz.extract(file, dst_dir)
     else:
         print('This is not zip')
-
-
+        
 path = os.path.split(os.path.realpath(__file__))[0]
 log_path = os.path.join(path, "natapp_web_log.txt")
 app_path = os.path.join(path, "natapp.exe")
-
 
 def update():
     # 检查更新
@@ -55,7 +52,6 @@ def update():
     except requests.exceptions.RequestException as e:
         pass
 
-
 # 判断系统架构
 def check_os():
     if platform.system() == 'Windows':
@@ -72,7 +68,6 @@ def check_os():
     else:
         print('非 Windows 系统')
 
-
 def process_check():
     print("正在检测穿透状态...")
     global url_g
@@ -80,7 +75,6 @@ def process_check():
     if url_g is not None:
         return True
     return False
-
 
 # 执行程序
 def go():
@@ -104,7 +98,6 @@ def go():
     else:
         print("启动内网穿透失败...")
 
-
 # 下载主程序
 def download_natapp(cpu):
     if not os.path.exists("natapp.exe"):
@@ -119,7 +112,6 @@ def download_natapp(cpu):
         unzip_file(zip_src="./" + name, dst_dir="./")
         os.remove("./" + name)  # 删除原始zip文件
 
-
 # 获取穿透url
 def get_url():
     try:
@@ -133,10 +125,6 @@ def get_url():
                 errors = {"Web服务错误", "此端口尚未提供Web服务", "无法连接到", "not found"}
                 # 使用any函数来判断res中是否包含任意一个错误信息，简化逻辑判断
                 if any(error in res for error in errors):
-                    # 使用subprocess模块来执行系统命令，避免使用os.system
-                    import subprocess
-                    # 使用psutil模块的process_iter方法来遍历进程，返回一个生成器，节省内存
-                    import psutil
                     # 使用next函数来查找名为natapp.exe的进程，如果找不到则返回None
                     process = next((p for p in psutil.process_iter() if p.name() == "natapp.exe"), None)
                     # 如果找到了进程，则杀死它，并重定向错误输出到nul
@@ -146,7 +134,6 @@ def get_url():
                 return i
     except:
         return None
-
 
 # push推送
 def pushplus_bot(title, content):
@@ -171,9 +158,8 @@ def pushplus_bot(title, content):
     except Exception as e:
         print(e)
 
-
 if __name__ == '__main__':
-    version = 2.3
+    version = 2.4
     start = True
     try:
         authtoken = os.environ['natapp_authtoken_web']
