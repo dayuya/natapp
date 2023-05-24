@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-
-# Version: v2.5
+# Version: v2.6
 # auth: dayuya
 # time: 2023/05/24
 import os
@@ -20,7 +20,7 @@ path = os.path.split(os.path.realpath(__file__))[0]
 log_path = os.path.join(path, "natapp_web_log.txt")
 app_path = os.path.join(path, "natapp.exe")
 
-errors = {"Web服务错误", "此端口尚未提供Web服务", "无法连接到", "not found"}
+errors = {"Web服务错误", "此端口尚未提供Web服务", "无法连接到", "not found","<title>Web"}
 url_pattern = re.compile(r"http://\S+")
 
 def unzip_file(zip_src, dst_dir):
@@ -71,31 +71,19 @@ def check_os():
     else:
         print('非 Windows 系统')
 
-def process_check():
-    print("正在检测穿透状态...")
-    global url_g
-    url_g = get_url()
-    if url_g is not None:
-        return True
-    return False
-
 # 执行程序
 def go():
     commond = app_path + " -authtoken=" + authtoken + " -loglevel=INFO -log=" + log_path
-    if process_check():
+    if get_url() is not None:
         pushplus_bot("natap穿透通知", "web穿透地址：" + url_g)
         print("穿透程序已在运行...：%s" % url_g)
         return
     if os.path.exists(log_path):
         os.system("type nul > " + log_path)
-    # 根据进程名判断进程是否存在
-    if any(p.name() == 'natapp.exe' for p in psutil.process_iter()):
-        os.system("taskkill /im natapp.exe /f 2>nul")
-
     print("正在启动内网穿透...")
     os.system(f"start /B {commond} >NUL 2>NUL")
     sleep(2)
-    if process_check():
+    if get_url() is not None:
         pushplus_bot("natapp穿透通知", "web穿透地址：" + url_g)
         print("启动内网穿透成功！：%s" % url_g)
     else:
@@ -118,6 +106,8 @@ def download_natapp(cpu):
 # 获取穿透url
 def get_url():
     try:
+        global url_g
+        print("正在检测穿透状态...")
         with open(log_path, encoding='utf-8') as f:
             log_content = f.read()
         for i in url_pattern.findall(log_content):
@@ -131,6 +121,7 @@ def get_url():
                     if process:
                         subprocess.run(["taskkill", "/im", "natapp.exe", "/f"], stderr=subprocess.DEVNULL)
                     return None
+                url_g=i
                 return i
     except:
         return None
@@ -165,7 +156,7 @@ def check_env_var(var_name, message):
     return value
 
 if __name__ == '__main__':
-    version = 2.5
+    version = 2.6
     start = True
     authtoken = check_env_var('natapp_authtoken_web', "请添加环境变量：natapp_authtoken_web")
     PUSH_PLUS_TOKEN = check_env_var('PUSH_PLUS_TOKEN', "未开启通知 请添加环境变量:PUSH_PLUS_TOKEN")
