@@ -1,5 +1,9 @@
 # natapp
 natapp 用于内网穿透
+#### 介绍
+- 穿透内网 公开到公网
+- 24小时不定时更换地址。解决：微信推送
+- `natapp` 官网后台更新穿透地址与端口
 - 直接下载脚本 运行 
 - 第一次会提示 添加环境变量 `PUSH_PLUS_TOKEN`  `natapp_authtoken_web`
 - PUSH_PLUS_TOKEN:微信plus的token
@@ -8,6 +12,8 @@ natapp 用于内网穿透
 - 拉取脚本
 - 同级目录建立 `.env` 文件 ：脚本会将此文件内容添加到 环境变量
   - 格式 一个变量一行  PUSH_PLUS_TOKEN="11"
+ 
+  
 
 #### 其他
 ##### 参考文献
