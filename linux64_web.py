@@ -1,10 +1,11 @@
 # -*- coding: UTF-8 -*-
-# Version: v1.0
+# Version: v1.1
 # auth: dayuya
 # time: 2023/05/24
-import json
 import os
 import re
+import sys
+import json
 import requests
 from time import sleep
 
@@ -15,7 +16,7 @@ app_path = os.path.join(path, "natapp")
 url_pattern = re.compile(r"http://\S+")
 errors = {"Web服务错误", "此端口尚未提供Web服务", "无法连接到", "not found","<title>Web"}
 # 检查更新
-def update():
+def update(version):
     print("当前运行的脚本版本：" + str(version))
     try:
         r1 = requests.get("https://ghproxy.com/https://raw.githubusercontent.com/dayuya/natapp/main/linux64_web.py").text
@@ -44,10 +45,11 @@ def check_os():
 # 下载主程序
 def download_natapp(cpu):
     if not os.path.exists("natapp"):
+        print("正在下载程序")
         res = requests.get("https://cdn.natapp.cn/assets/downloads/clients/2_3_9/natapp_linux_" + cpu + "/natapp")
         with open("natapp", "wb") as f:
             f.write(res.content)
-        os.system("chmod +x natapp&&")
+        os.system("chmod +x natapp")
 
 # 获取穿透url
 def get_url():
@@ -56,34 +58,39 @@ def get_url():
         with open(log_path, encoding='utf-8') as f:
             log_content = f.read()
         for i in url_pattern.findall(log_content):
-            if 'natapp' in i:
+            if 'natappfree' in i:
                 res = requests.get(i).text
                 if any(error in res for error in errors):
+                    print(1)
                     return None
                 url_g = i
-                return i
-    except:
+                return i 
+    except Exception as e:
+        print(e)
         return None
 
 
 # 执行程序
 def go():
+    print("# 执行程序")
     commond = app_path + " -authtoken=" + authtoken + " -loglevel=INFO -log=" + log_path
     if get_url() is None:
-        os.system("rm -rf " + log_path)
-        os.system("mkdir -p " + log_path)
-        os.system("killall cpolar >/dev/null 2>&1")
+        os.system("rm -f " + log_path)
+        os.system("touch " + log_path)
+        os.system("killall natapp")
         print("正在启动内网穿透...")
         os.system(commond)
         sleep(5)
         if get_url():
-            pushplus_bot("natapp穿透通知", "web穿透地址：" + url_g)
             print("启动内网穿透成功！：%s" % url_g)
+            pushplus_bot("natapp穿透通知", "web穿透地址：" + url_g)
+            
         else:
             print("启动内网穿透失败...")
     else:
-        pushplus_bot("natap穿透通知", "web穿透地址：" + url_g)
         print("穿透程序已在运行...：%s" % url_g)
+        pushplus_bot("natap穿透通知", "web穿透地址：" + url_g)
+        
 
 
 # push推送
@@ -116,7 +123,7 @@ def check_env_var(var_name, message):
     return value
 
 if __name__ == '__main__':
-    version = 1.0
+    version = 1.1
     start = True
     authtoken = check_env_var('natapp_authtoken_web', "请添加环境变量：natapp_authtoken_web")
     PUSH_PLUS_TOKEN = check_env_var('PUSH_PLUS_TOKEN', "未开启通知 请添加环境变量:PUSH_PLUS_TOKEN")
@@ -124,5 +131,4 @@ if __name__ == '__main__':
         start = False
     update(version)
     check_os()
-    if start:
-        go()
+    go()
