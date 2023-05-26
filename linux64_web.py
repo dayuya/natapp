@@ -59,10 +59,10 @@ def get_url():
             log_content = f.read()
         for i in url_pattern.findall(log_content):
             if 'natappfree' in i:
-                res = requests.get(i).text
-                if any(error in res for error in errors):
-                    print(1)
-                    return None
+#                 res = requests.get(i).text
+#                 if any(error in res for error in errors):
+#                     print(1)
+#                     return None
                 url_g = i
                 return i 
     except Exception as e:
