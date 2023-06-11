@@ -1,7 +1,8 @@
-# -*- coding: UTF-8 -*-
-# Version: v1.1
+# -*- coding: utf-8 -*-
+# Version: v1.2
 # auth: dayuya
 # time: 2023/05/24
+
 import os
 import re
 import sys
@@ -18,16 +19,13 @@ errors = {"Web服务错误", "此端口尚未提供Web服务", "无法连接到"
 # 检查更新
 def update(version):
     print("当前运行的脚本版本：" + str(version))
-    try:
-        r1 = requests.get("https://ghproxy.com/https://raw.githubusercontent.com/dayuya/natapp/main/linux64_web.py").text
-        r2 = re.findall(re.compile("version = \d.\d"), r1)[0].split("=")[1].strip()
-        if float(r2) > version:
-            print("发现新版本：" + r2)
-            print("正在自动更新脚本...")
-            os.system("killall natapp")
-            os.system("ql raw https://ghproxy.com/https://raw.githubusercontent.com/dayuya/natapp/main/linux64_web.py &")
-    except:
-        pass
+    r1 = requests.get("https://ghproxy.com/https://raw.githubusercontent.com/dayuya/natapp/main/linux64_web_ql.py").text
+    r2 = re.findall(re.compile("version = \d.\d"), r1)[0].split("=")[1].strip()
+    if float(r2) > float(version):
+        print("发现新版本：" + r2)
+        print("正在自动更新脚本...")
+        os.system("killall natapp >/dev/null 2>&1")
+        os.system("ql raw https://ghproxy.com/https://raw.githubusercontent.com/dayuya/natapp/main/linux64_web_ql.py &")
 
 # 判断CPU架构
 def check_os():
@@ -53,38 +51,38 @@ def download_natapp(cpu):
 
 # 获取穿透url
 def get_url():
-    try:
-        global url_g
-        with open(log_path, encoding='utf-8') as f:
-            log_content = f.read()
-        for i in url_pattern.findall(log_content):
-            if 'natappfree' in i:
-#                 res = requests.get(i).text
-#                 if any(error in res for error in errors):
-#                     print(1)
-#                     return None
-                url_g = i
-                return i 
-    except Exception as e:
-        print(e)
+    global url_g
+    if not os.path.exists(log_path):
         return None
+    with open(log_path, encoding='utf-8') as f:
+        log_content = f.read()
+    for i in url_pattern.findall(log_content):
+        if 'natappfree' in i:
+            res = requests.get(i).text
+            if any(error in res for error in errors):
+                print("隧道过期")
+                return None
+            url_g = i
+            return i 
+    return None
 
 
 # 执行程序
 def go():
     print("# 执行程序")
-    commond = app_path + " -authtoken=" + authtoken + " -loglevel=INFO -log=" + log_path
+    commond = app_path + " -authtoken=" + authtoken + " -loglevel=INFO -log=" + log_path+" &"
     if get_url() is None:
-        os.system("rm -f " + log_path)
-        os.system("touch " + log_path)
-        os.system("killall natapp")
+        # 删除日志文件
+        if os.path.exists(log_path):
+            os.remove(log_path)
+        # 终止所有 natapp 进程
+        os.system("killall natapp >/dev/null 2>&1")
         print("正在启动内网穿透...")
         os.system(commond)
-        sleep(5)
+        sleep(2)
         if get_url():
             print("启动内网穿透成功！：%s" % url_g)
             pushplus_bot("natapp穿透通知", "web穿透地址：" + url_g)
-            
         else:
             print("启动内网穿透失败...")
     else:
@@ -112,7 +110,7 @@ def pushplus_bot(title, content):
         if response['code'] == 200:
             print('推送成功！')
         else:
-            print('推送失败！')
+            print('推送失败！',response['msg'])
     except Exception as e:
         print(e)
 
@@ -120,10 +118,11 @@ def check_env_var(var_name, message):
     value = os.environ.get(var_name, '')
     if not value:
         print(message)
+        return None
     return value
 
 if __name__ == '__main__':
-    version = 1.1
+    version = 1.2
     start = True
     authtoken = check_env_var('natapp_authtoken_web', "请添加环境变量：natapp_authtoken_web")
     PUSH_PLUS_TOKEN = check_env_var('PUSH_PLUS_TOKEN', "未开启通知 请添加环境变量:PUSH_PLUS_TOKEN")
@@ -131,4 +130,5 @@ if __name__ == '__main__':
         start = False
     update(version)
     check_os()
-    go()
+    if start:
+        go()
