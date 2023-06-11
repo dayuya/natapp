@@ -12,6 +12,10 @@ natapp 用于内网穿透
 - 拉取脚本
 - 同级目录建立 `.env` 文件 ：脚本会将此文件内容添加到 环境变量
   - 格式 一个变量一行  PUSH_PLUS_TOKEN="11"
+#### liunx64_ql 教程
+- 拉取脚本
+  - 环境变量在青龙面板添加环境变量 `PUSH_PLUS_TOKEN`  `natapp_authtoken_web`
+  - 目前只用于：青龙脚本
 #### 其他
 ##### ps:问题
 - [微信push`token`怎么获得](https://www.pushplus.plus/)
